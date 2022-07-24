@@ -26,6 +26,7 @@ local GBK = {}
 GBK.name = "GuildBookkeeper"
 GBK.version = "0.0.5"
 GBK.author = 'ArcHouse'
+GBK.saveVars = 'GuildBookkeeperVariables'
 GBK.default = {guilds={}, ledger={}}
 GBK.listeners = {}
 GBK.defaultLookback = 90
@@ -55,7 +56,7 @@ function GBK.Initialize()
   EVENT_MANAGER:RegisterForEvent('GBK-ListenerState', EVENT_PLAYER_ACTIVATED, GBK.GetListenerState)
 
   GBK.GuildInfo()
-  GBK.savedVariables=ZO_SavedVars:NewAccountWide("GBKVariables", 1, nil, GBK.default)
+  GBK.savedVariables=ZO_SavedVars:NewAccountWide(GBK.saveVars, 1, nil, GBK.default)
   GBK.SetupListeners()
   GBK.InitSettingMenu()
 end
