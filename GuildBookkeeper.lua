@@ -128,7 +128,7 @@ function GBK.SetupListeners()
     guildName = GBK.default['guilds'][guildId]['guildName']
     GBK.SetupListener(guildId, guildName)
     if GBK.savedVariables['guilds'][guildId]['enabled'] == true then
-      -- Guild needs to be enabled in settings.
+      -- Guild listener should default to inactive, user should enabled in settings.
       GBK.listeners[guildId]:Start()
     end
   end
@@ -144,11 +144,19 @@ function GBK.SetupListener(guildId, guildName)
       local ttc = GBK:GetTamrielTradeCentrePrice(param3)
       local mm = GBK:GetMmPrice(param3)
       local typeId = eventType
-      -- need to find the eventType Ids for the other event types...s
-      if typeId == 13 then typeName = 'Credit'
-        elseif typeId == 14 then typeName = 'Debit'
-        else typeName = 'Unknown'
+
+      -- https://wiki.esoui.com/Constant_Values
+      if typeId == 13 then typeName = 'Credit' -- GUILD_EVENT_BANKITEM_ADDED
+      elseif typeId == 14 then typeName = 'Debit' -- GUILD_EVENT_BANKITEM_REMOVED
+      elseif typeId == 21 then typeName = 'Credit' -- GUILD_EVENT_BANKGOLD_ADDED
+      elseif typeId == 22 then typeName = 'Debit' -- GUILD_EVENT_BANKGOLD_REMOVED
+      elseif typeId == 29 then typeName = 'Credit' -- GUILD_EVENT_BANKGOLD_GUILD_STORE_TAX
+      elseif typeId == 29 then typeName = 'Credit'  -- GUILD_EVENT_BANKGOLD_KIOSK_BID
+      elseif typeId == 23 then typeName = 'Debit'  -- GUILD_EVENT_BANKGOLD_KIOSK_BID_REFUND
+      elseif typeId == 26 then typeName = 'Credit'  -- GUILD_EVENT_BANKGOLD_PURCHASE_HERALDRY
+      else typeId = ''
       end
+
       t = {transactionId = Id64ToString(eventId)
             , transactionType = typeName
             , typeId = eventType
@@ -168,7 +176,7 @@ function GBK.SetupListener(guildId, guildName)
             , mmNumDays = mm['numDays']
             , mmNumSales = mm['numSales']
             , itemLink = param3
---            , key = GBK.listeners[guildId]:GetKey()
+            , key = GBK.listeners[guildId]:GetKey()
           }
       if GBK:CheckExists(eventId, guildId, guildName) == false then
         table.insert(GBK.savedVariables['ledger'][guildName], t)
