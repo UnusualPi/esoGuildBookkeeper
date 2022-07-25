@@ -31,7 +31,7 @@ GBK.default = {guilds={}, ledger={}}
 GBK.listeners = {}
 GBK.defaultLookback = 90
 
-function GBK.Msg(text, type)
+function GBK.Msg(text, type) -- Make text coloring easy & standard by passing a message type.
   -- https://www.color-hex.com/color-palette/1015961
   if type == 'info' then
     d('[' .. GBK.name ..'] ' .. '|cfff85c' .. text .. '|r')
@@ -54,7 +54,6 @@ end
 function GBK.Initialize()
   EVENT_MANAGER:RegisterForEvent('GBK-initmsg', EVENT_PLAYER_ACTIVATED, GBK.InitMsg)
   EVENT_MANAGER:RegisterForEvent('GBK-ListenerState', EVENT_PLAYER_ACTIVATED, GBK.GetListenerState)
-
   GBK.GuildInfo()
   GBK.savedVariables=ZO_SavedVars:NewAccountWide(GBK.saveVars, 1, nil, GBK.default)
   GBK.SetupListeners()
@@ -77,7 +76,7 @@ end
 
 function GBK:GetTamrielTradeCentrePrice(itemLink)
   priceStats={}
-  if not TamrielTradeCentrePrice then -- If TTC Addon is not installed
+  if not TamrielTradeCentrePrice then -- If TTC Addon is not installed...Do I really need this??
     priceStats['Avg'] = 'TTC not available'
     priceStats['SuggestedPrice'] = 'TTC not available'
     return priceStats
@@ -141,6 +140,7 @@ function GBK.SetupListener(guildId, guildName)
       GBK.listeners[guildId]:SetAfterEventId(StringToId64(lastEvent))
     end
     GBK.listeners[guildId]:SetNextEventCallback(function(eventType, eventId, eventTime, param1, param2, param3, param4, param5, param6)
+      -- https://github.com/sirinsidiator/ESO-LibHistoire/blob/536e39d6313116b84f7dfa6e4f31c46047d8b6ff/src/guildHistoryCache/GuildHistoryEventListener.lua#L202
       local ttc = GBK:GetTamrielTradeCentrePrice(param3)
       local mm = GBK:GetMmPrice(param3)
       local typeId = eventType
@@ -157,6 +157,7 @@ function GBK.SetupListener(guildId, guildName)
       else typeId = ''
       end
 
+      -- TODO: Need to validate table structure below will handle all Event Types listed above.
       t = {transactionId = Id64ToString(eventId)
             , transactionType = typeName
             , typeId = eventType
@@ -179,6 +180,7 @@ function GBK.SetupListener(guildId, guildName)
             , key = GBK.listeners[guildId]:GetKey()
           }
       if GBK:CheckExists(eventId, guildId, guildName) == false then
+        -- !!THIS IS O(n)
         table.insert(GBK.savedVariables['ledger'][guildName], t)
       end
       GBK.savedVariables['guilds'][guildId]['lastEvent'] = Id64ToString(eventId)
