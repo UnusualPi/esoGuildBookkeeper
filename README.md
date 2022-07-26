@@ -7,7 +7,7 @@ Utilizes [LibHistoire](https://www.esoui.com/downloads/info2817-LibHistoire-Guil
 If [MasterMerchant](https://www.esoui.com/downloads/info2753-MasterMerchant3.0.html) is installed it will fetch the average price for the respective item using the user's default MM day period.
 
 #### TamrielTradeCenter Integration
-If [TanrielTradeCenter](https://tamrieltradecentre.com/) is installed it will fetch the TTC average price.
+If [TamrielTradeCenter](https://tamrieltradecentre.com/) is installed it will fetch the TTC average price.
 *User must have most current price table updated if they want this to be accurate*
 
 #### Companion App
