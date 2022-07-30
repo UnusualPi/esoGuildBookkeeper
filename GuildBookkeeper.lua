@@ -75,16 +75,22 @@ end
 
 function GBK:GetTamrielTradeCentrePrice(itemLink)
   -- Line 22 of TamrielTradeCentrePrice.lua
-  local ttcPrices = TamrielTradeCentrePrice:GetPriceInfo(itemLink)
   local priceStats = {}
-  if ttcPrices == nil then
-    priceStats['AmountCount'] = 'No TTC Records'
+  if not TamrielTradeCentrePrice then
+    priceStats['AmountCount'] = 'TTC not installed'
     priceStats['Avg'] = ''
     priceStats['SuggestedPrice'] = ''
   else
-    priceStats['AmountCount'] = ttcPrices['AmountCount']
-    priceStats['Avg'] = ttcPrices['Avg']
-    priceStats['SuggestedPrice'] = ttcPrices['SuggestedPrice']
+    local ttcPrices = TamrielTradeCentrePrice:GetPriceInfo(itemLink)
+    if ttcPrices == nil then
+      priceStats['AmountCount'] = 'No TTC records'
+      priceStats['Avg'] = ''
+      priceStats['SuggestedPrice'] = ''
+    else
+      priceStats['AmountCount'] = ttcPrices['AmountCount']
+      priceStats['Avg'] = ttcPrices['Avg']
+      priceStats['SuggestedPrice'] = ttcPrices['SuggestedPrice']
+    end
   end
   return priceStats
 end
@@ -94,16 +100,22 @@ function GBK:GetMmPrice(itemLink) -- Prices pull from MM's "Default Days Range"
   -- output from MasterMerchant:GetTooltipStats() on line 312 of MasterMerchant.lua
   -- continue to use `itemStats` for now since its recommended, but may not be
   -- needed in future.
-  local mmStats = MasterMerchant:itemStats(itemLink, false)
   local priceStats={}
-  if mmStats['numSales'] == nil then
+  if not MasterMerchat then
     priceStats['numDays'] = ''
     priceStats['avgPrice'] = ''
-    priceStats['numSales'] = 'No MM Sales'
+    priceStats['numSales'] = 'MM not installed'
   else
-    priceStats['numDays'] = mmStats['numDays']
-    priceStats['avgPrice'] = mmStats['avgPrice']
-    priceStats['numSales'] = mmStats['numSales']
+    local mmStats = MasterMerchant:itemStats(itemLink, false)
+    if mmStats['numSales'] == nil then
+      priceStats['numDays'] = ''
+      priceStats['avgPrice'] = ''
+      priceStats['numSales'] = 'No MM sales'
+    else
+      priceStats['numDays'] = mmStats['numDays']
+      priceStats['avgPrice'] = mmStats['avgPrice']
+      priceStats['numSales'] = mmStats['numSales']
+    end
   end
   return priceStats
 end
