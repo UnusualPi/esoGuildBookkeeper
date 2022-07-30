@@ -74,14 +74,14 @@ function GBK.GuildInfo()
 end
 
 function GBK:GetTamrielTradeCentrePrice(itemLink)
-  -- Line 22 of TamrielTradeCentrePrice.lua
   local priceStats = {}
-  if not TamrielTradeCentrePrice then
+  if not TamrielTradeCentrePrice then -- if TTC not installed
     priceStats['AmountCount'] = 'TTC not installed'
     priceStats['Avg'] = ''
     priceStats['SuggestedPrice'] = ''
   else
     local ttcPrices = TamrielTradeCentrePrice:GetPriceInfo(itemLink)
+    -- Line 22 of TamrielTradeCentrePrice.lua
     if ttcPrices == nil then
       priceStats['AmountCount'] = 'No TTC records'
       priceStats['Avg'] = ''
@@ -96,17 +96,17 @@ function GBK:GetTamrielTradeCentrePrice(itemLink)
 end
 
 function GBK:GetMmPrice(itemLink) -- Prices pull from MM's "Default Days Range"
-  -- line 76 of MasterMerchant_Alias.lua which actually just returns the
-  -- output from MasterMerchant:GetTooltipStats() on line 312 of MasterMerchant.lua
-  -- continue to use `itemStats` for now since its recommended, but may not be
-  -- needed in future.
   local priceStats={}
-  if not MasterMerchat then
+  if not MasterMerchat then -- If MM not installed
     priceStats['numDays'] = ''
     priceStats['avgPrice'] = ''
     priceStats['numSales'] = 'MM not installed'
   else
     local mmStats = MasterMerchant:itemStats(itemLink, false)
+    -- line 76 of MasterMerchant_Alias.lua which actually just returns the
+    -- output from MasterMerchant:GetTooltipStats() on line 312 of MasterMerchant.lua
+    -- continue to use `itemStats` for now since its recommended, but may not be
+    -- needed in future.
     if mmStats['numSales'] == nil then
       priceStats['numDays'] = ''
       priceStats['avgPrice'] = ''
