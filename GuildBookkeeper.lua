@@ -29,7 +29,6 @@ GBK.author = 'ArcHouse'
 GBK.saveVars = 'GuildBookkeeperVariables'
 GBK.default = {guilds={}, ledger={}}
 GBK.listeners = {}
-GBK.defaultLookback = 90
 
 function GBK.Msg(text, type) -- Make text coloring easy & standard by passing a message type.
   -- https://www.color-hex.com/color-palette/1015961
@@ -69,37 +68,34 @@ function GBK.GuildInfo()
   for i=1, GetNumGuilds() do
     local guildId = GetGuildId(i)
     local guildName = GetGuildName(guildId)
-    GBK.default['guilds'][guildId] = {guildName=guildName, enabled = false, lastEvent=nil}
+    GBK.default['guilds'][guildId] = {guildName=guildName, enabled = false, lastEvent=nil, lookBackPeriod = 90}
     GBK.default['ledger'][guildName] = {}
   end
 end
 
 function GBK:GetTamrielTradeCentrePrice(itemLink)
-  priceStats={}
-  if not TamrielTradeCentrePrice then -- If TTC Addon is not installed...Do I really need this??
-    priceStats['Avg'] = 'TTC not available'
-    priceStats['SuggestedPrice'] = 'TTC not available'
-    return priceStats
+  -- Line 22 of TamrielTradeCentrePrice.lua
+  local ttcPrices = TamrielTradeCentrePrice:GetPriceInfo(itemLink)
+  local priceStats = {}
+  if ttcPrices == nil then
+    priceStats['AmountCount'] = 'No TTC Records'
+    priceStats['Avg'] = ''
+    priceStats['SuggestedPrice'] = ''
+  else
+    priceStats['AmountCount'] = ttcPrices['AmountCount']
+    priceStats['Avg'] = ttcPrices['Avg']
+    priceStats['SuggestedPrice'] = ttcPrices['SuggestedPrice']
   end
-
-  if not itemLink then -- if no item link is passed
-    priceStats['Avg'] = 'No itemLink'
-    priceStats['SuggestedPrice'] = 'No itemLink'
-    return priceStats
-  end
-
-  ttcPrices = TamrielTradeCentrePrice:GetPriceInfo(itemLink)
-  if not ttcPrices then
-    priceStats['Avg'] = 'TTC has no pricing'
-    priceStats['SuggestedPrice'] = 'TTC has no pricing'
-    return priceStats
-  end
-  return ttcPrices
+  return priceStats
 end
 
 function GBK:GetMmPrice(itemLink) -- Prices pull from MM's "Default Days Range"
+  -- line 76 of MasterMerchant_Alias.lua which actually just returns the
+  -- output from MasterMerchant:GetTooltipStats() on line 312 of MasterMerchant.lua
+  -- continue to use `itemStats` for now since its recommended, but may not be
+  -- needed in future.
   local mmStats = MasterMerchant:itemStats(itemLink, false)
-  priceStats={}
+  local priceStats={}
   if mmStats['numSales'] == nil then
     priceStats['numDays'] = ''
     priceStats['avgPrice'] = ''
@@ -124,7 +120,7 @@ end
 
 function GBK.SetupListeners()
   for guildId,v in pairs(GBK.default['guilds']) do
-    guildName = GBK.default['guilds'][guildId]['guildName']
+    local guildName = GBK.default['guilds'][guildId]['guildName']
     GBK.SetupListener(guildId, guildName)
     if GBK.savedVariables['guilds'][guildId]['enabled'] == true then
       -- Guild listener should default to inactive, user should enabled in settings.
@@ -135,9 +131,11 @@ end
 
 function GBK.SetupListener(guildId, guildName)
     GBK.listeners[guildId] = LGH:CreateGuildHistoryListener(guildId, GUILD_HISTORY_BANK)
-    local lastEvent
     if GBK.savedVariables['guilds'][guildId]['lastEvent'] ~= nil then
-      GBK.listeners[guildId]:SetAfterEventId(StringToId64(lastEvent))
+      GBK.listeners[guildId]:SetAfterEventId(StringToId64(GBK.savedVariables['guilds'][guildId]['lastEvent']))
+    else
+      local minTs = os.time() - (GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] * 86400)
+      GBK.listeners[guildId]:SetAfterEventTime(minTs)
     end
     GBK.listeners[guildId]:SetNextEventCallback(function(eventType, eventId, eventTime, param1, param2, param3, param4, param5, param6)
       -- https://github.com/sirinsidiator/ESO-LibHistoire/blob/536e39d6313116b84f7dfa6e4f31c46047d8b6ff/src/guildHistoryCache/GuildHistoryEventListener.lua#L202
@@ -146,20 +144,21 @@ function GBK.SetupListener(guildId, guildName)
       local typeId = eventType
 
       -- https://wiki.esoui.com/Constant_Values
-      if typeId == 13 then typeName = 'Credit' -- GUILD_EVENT_BANKITEM_ADDED
-      elseif typeId == 14 then typeName = 'Debit' -- GUILD_EVENT_BANKITEM_REMOVED
-      elseif typeId == 21 then typeName = 'Credit' -- GUILD_EVENT_BANKGOLD_ADDED
-      elseif typeId == 22 then typeName = 'Debit' -- GUILD_EVENT_BANKGOLD_REMOVED
-      elseif typeId == 29 then typeName = 'Credit' -- GUILD_EVENT_BANKGOLD_GUILD_STORE_TAX
-      elseif typeId == 29 then typeName = 'Credit'  -- GUILD_EVENT_BANKGOLD_KIOSK_BID
-      elseif typeId == 23 then typeName = 'Debit'  -- GUILD_EVENT_BANKGOLD_KIOSK_BID_REFUND
-      elseif typeId == 26 then typeName = 'Credit'  -- GUILD_EVENT_BANKGOLD_PURCHASE_HERALDRY
+      if typeId == 13 then typeName = 'Credit' typeDesc = 'Item Deposited' -- GUILD_EVENT_BANKITEM_ADDED
+      elseif typeId == 14 then typeName = 'Debit' typeDesc = 'Item Withdrawn' -- GUILD_EVENT_BANKITEM_REMOVED
+      elseif typeId == 21 then typeName = 'Credit' typeDesc = 'Gold Deposited'-- GUILD_EVENT_BANKGOLD_ADDED
+      elseif typeId == 22 then typeName = 'Debit' typeDesc = 'Gold Withdrawn'-- GUILD_EVENT_BANKGOLD_REMOVED
+      elseif typeId == 29 then typeName = 'Credit' typeDesc = 'Store Tax'-- GUILD_EVENT_BANKGOLD_GUILD_STORE_TAX
+      elseif typeId == 29 then typeName = 'Credit'  typeDesc = 'Kiosk Bid'-- GUILD_EVENT_BANKGOLD_KIOSK_BID
+      elseif typeId == 23 then typeName = 'Debit'  typeDesc = 'Kiosk Bid Refund'-- GUILD_EVENT_BANKGOLD_KIOSK_BID_REFUND
+      elseif typeId == 26 then typeName = 'Credit'  typeDesc = 'Heraldry Purchase'-- GUILD_EVENT_BANKGOLD_PURCHASE_HERALDRY
       else typeId = ''
       end
 
       -- TODO: Need to validate table structure below will handle all Event Types listed above.
       t = {transactionId = Id64ToString(eventId)
             , transactionType = typeName
+            , transactionDescription = typeDesc
             , typeId = eventType
             , transactionTimestamp = eventTime
             , transactionDatetime = os.date('%Y-%m-%d %H:%M:%S', eventTime)
@@ -171,6 +170,7 @@ function GBK.SetupListener(guildId, guildName)
             , itemTrait = GetItemLinkTraitType(param3)
             , itemCp = GetItemLinkRequiredChampionPoints(param3)
             , itemLevel = GetItemLinkRequiredLevel(param3)
+            , ttcNumListings = ttc['AmountCount']
             , ttcAvg = ttc["Avg"]
             , ttcSuggested = ttc["SuggestedPrice"]
             , mmAvg = mm['avgPrice']
@@ -262,6 +262,19 @@ function GBK:InitSettingMenu()
         tooltip = 'Enable monitoring for '.. guildName,
         getFunc = function() return GBK.listeners[guildId]:IsRunning() end,
         setFunc = function(v) GBK:ToggleListenerState(guildId) end
+      }
+    )
+    table.insert(optionsTable,
+      {
+        type = "slider",
+        name = "Lookback Days",
+        requiresReload = true,
+        getFunc = function() return GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] end,
+        setFunc = function(value) GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] = value end,
+        min = 1,
+        max = 366,
+        default = GBK.defaultLookback,
+        reference = guildName.."Lookback Days"
       }
     )
     table.insert(optionsTable,
