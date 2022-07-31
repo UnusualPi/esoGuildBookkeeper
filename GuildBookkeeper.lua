@@ -97,7 +97,7 @@ end
 
 function GBK:GetMmPrice(itemLink) -- Prices pull from MM's "Default Days Range"
   local priceStats={}
-  if not MasterMerchat then -- If MM not installed
+  if not MasterMerchant then -- If MM not installed
     priceStats['numDays'] = ''
     priceStats['avgPrice'] = ''
     priceStats['numSales'] = 'MM not installed'
@@ -167,7 +167,7 @@ function GBK.SetupListener(guildId, guildName)
       else typeId = ''
       end
 
-      if typeId == 13 or typeId == 14 do
+      if typeId == 13 or typeId == 14 then
         -- TODO: Need to validate table structure below will handle all Event Types listed above.
         -- Only tested for types 13 & 14 so ignoring all others for now.
         t = {transactionId = Id64ToString(eventId)
