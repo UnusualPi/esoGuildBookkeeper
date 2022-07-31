@@ -6,9 +6,9 @@
 
 
 ## APIVersion: 101033 101034
-## Title: Guild Bookkeeper 0.0.5 by ArcHouse
+## Title: Guild Bookkeeper 0.0.6 by ArcHouse
 ## Description:
-## Version: 0.0.5
+## Version: 0.0.6
 ## Author: ArcHouse
 ## License:
 ## SavedVariables: GuildBookkeeperVariables
