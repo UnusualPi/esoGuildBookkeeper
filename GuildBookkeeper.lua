@@ -167,35 +167,38 @@ function GBK.SetupListener(guildId, guildName)
       else typeId = ''
       end
 
-      -- TODO: Need to validate table structure below will handle all Event Types listed above.
-      t = {transactionId = Id64ToString(eventId)
-            , transactionType = typeName
-            , transactionDescription = typeDesc
-            , typeId = eventType
-            , transactionTimestamp = eventTime
-            , transactionDatetime = os.date('%Y-%m-%d %H:%M:%S', eventTime)
-            , guildMember = param1
-            , itemId = GetItemLinkItemId(param3)
-            , transactionQuantity = param2
-            , itemName = GetItemLinkName(param3)
-            , itemQuality = GetItemLinkQuality(param3)
-            , itemTrait = GetItemLinkTraitType(param3)
-            , itemCp = GetItemLinkRequiredChampionPoints(param3)
-            , itemLevel = GetItemLinkRequiredLevel(param3)
-            , ttcNumListings = ttc['AmountCount']
-            , ttcAvg = ttc["Avg"]
-            , ttcSuggested = ttc["SuggestedPrice"]
-            , mmAvg = mm['avgPrice']
-            , mmNumDays = mm['numDays']
-            , mmNumSales = mm['numSales']
-            , itemLink = param3
-            , key = GBK.listeners[guildId]:GetKey()
-          }
-      if GBK:CheckExists(eventId, guildId, guildName) == false then
-        -- !!THIS IS O(n)
-        table.insert(GBK.savedVariables['ledger'][guildName], t)
+      if typeId == 13 or typeId == 14 do
+        -- TODO: Need to validate table structure below will handle all Event Types listed above.
+        -- Only tested for types 13 & 14 so ignoring all others for now.
+        t = {transactionId = Id64ToString(eventId)
+              , transactionType = typeName
+              , transactionDescription = typeDesc
+              , typeId = eventType
+              , transactionTimestamp = eventTime
+              , transactionDatetime = os.date('%Y-%m-%d %H:%M:%S', eventTime)
+              , guildMember = param1
+              , itemId = GetItemLinkItemId(param3)
+              , transactionQuantity = param2
+              , itemName = GetItemLinkName(param3)
+              , itemQuality = GetItemLinkQuality(param3)
+              , itemTrait = GetItemLinkTraitType(param3)
+              , itemCp = GetItemLinkRequiredChampionPoints(param3)
+              , itemLevel = GetItemLinkRequiredLevel(param3)
+              , ttcNumListings = ttc['AmountCount']
+              , ttcAvg = ttc["Avg"]
+              , ttcSuggested = ttc["SuggestedPrice"]
+              , mmAvg = mm['avgPrice']
+              , mmNumDays = mm['numDays']
+              , mmNumSales = mm['numSales']
+              , itemLink = param3
+              , key = GBK.listeners[guildId]:GetKey()
+            }
+        if GBK:CheckExists(eventId, guildId, guildName) == false then
+          -- !!THIS IS O(n), but good enough for now
+          table.insert(GBK.savedVariables['ledger'][guildName], t)
+        end
+        GBK.savedVariables['guilds'][guildId]['lastEvent'] = Id64ToString(eventId)
       end
-      GBK.savedVariables['guilds'][guildId]['lastEvent'] = Id64ToString(eventId)
     end)
 end
 -------------------
