@@ -68,7 +68,7 @@ function GBK.GuildInfo()
   for i=1, GetNumGuilds() do
     local guildId = GetGuildId(i)
     local guildName = GetGuildName(guildId)
-    GBK.default['guilds'][guildId] = {guildName=guildName, enabled = false, lastEvent=nil, lookBackPeriod = 90}
+    GBK.default['guilds'][guildId] = {guildName=guildName, enabled = false, lastEvent=nil, lookBackPeriod = 31}
     GBK.default['ledger'][guildName] = {}
   end
 end
@@ -146,7 +146,7 @@ function GBK.SetupListener(guildId, guildName)
     if GBK.savedVariables['guilds'][guildId]['lastEvent'] ~= nil then
       GBK.listeners[guildId]:SetAfterEventId(StringToId64(GBK.savedVariables['guilds'][guildId]['lastEvent']))
     else
-      local minTs = os.time() - (GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] * 86400)
+      local minTs = os.time()-(GBK.savedVariables['guilds'][guildId]['lookBackPeriod']*86400)
       GBK.listeners[guildId]:SetAfterEventTime(minTs)
     end
     GBK.listeners[guildId]:SetNextEventCallback(function(eventType, eventId, eventTime, param1, param2, param3, param4, param5, param6)
@@ -235,6 +235,11 @@ function GBK:ClearGuildLedger(guildId, guildName)
   GBK.Msg('Ledger for ' .. guildName .. ' cleared.', 'err')
 end
 
+function GBK.UpdateLookback(guildId, guildName, days)
+  GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] = days
+  GBK:ClearGuildLedger(guildId, guildName) -- meh, good enough, force reloadui.
+end
+
 function GBK:InitSettingMenu()
 	local panelData = {
 		type = "panel"
@@ -282,9 +287,9 @@ function GBK:InitSettingMenu()
         name = "Lookback Days",
         requiresReload = true,
         getFunc = function() return GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] end,
-        setFunc = function(value) GBK.savedVariables['guilds'][guildId]['lookBackPeriod'] = value end,
+        setFunc = function(value) GBK.UpdateLookback(guildId, guildName, value) end,
         min = 1,
-        max = 366,
+        max = 365,
         default = GBK.defaultLookback,
         reference = guildName.."Lookback Days"
       }
