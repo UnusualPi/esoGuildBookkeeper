@@ -1,0 +1,2 @@
+pyinstaller 'Ledgers to CSV.py' --onefile --noconsole
+pyinstaller 'Ledgers to CSV.spec'
