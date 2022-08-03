@@ -1,3 +1,4 @@
 *.csv
 build/
 deployment/
+.DS_Store
