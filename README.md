@@ -11,8 +11,7 @@ If [TamrielTradeCenter](https://tamrieltradecentre.com/) is installed it will fe
 *User must have most current price table updated if they want this to be accurate*
 
 #### Companion App
-*Currently only for Windows.*
-The companion app, `Ledgers_to_CSV.exe` can be used to take the data captured and convert it into a CSV for easy manipulation.
+The companion app, `Ledgers_to_CSV.exe` (`Ledgers_to_CSV-macOS.zip` for macOS), can be used to take the data captured and convert it into a CSV for easy manipulation.
 
 #### Dependencies
 LibAddonMenu-2.0>=31
