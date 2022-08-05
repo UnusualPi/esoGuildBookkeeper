@@ -24,7 +24,7 @@ local LAM = LibAddonMenu2
 
 local GBK = {}
 GBK.name = "GuildBookkeeper"
-GBK.version = "0.0.6"
+GBK.version = "0.0.7"
 GBK.author = 'ArcHouse'
 GBK.saveVars = 'GuildBookkeeperVariables'
 GBK.default = {guilds={}, ledger={}}
