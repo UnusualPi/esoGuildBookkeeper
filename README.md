@@ -12,7 +12,7 @@ If [TamrielTradeCenter](https://tamrieltradecentre.com/) is installed it will fe
 
 #### Companion App
 *Currently only for Windows.*
-The companion app, `Ledgers to CSV.exe` can be used to take the data captured and convert it into a CSV for easy manipulation.
+The companion app, `Ledgers_to_CSV.exe` can be used to take the data captured and convert it into a CSV for easy manipulation.
 
 #### Dependencies
 LibAddonMenu-2.0>=31
@@ -21,3 +21,6 @@ LibHistoire>=392
 ##### Optional Dependencies
 TamrielTradeCentre
 MasterMerchant
+
+### New request? Found a bug? Want to review the source?
+Feel free to add a comment here or open an issue at [esoGuildBookkeeper on GitHub](https://github.com/UnusualPi/esoGuildBookkeeper).
